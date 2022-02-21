@@ -55,7 +55,20 @@ class OceanAdapter:
                 "cost": 1.0, # <don't change, this is obsolete>
             }
         }
-    
+
+    def __is_picklable(self, obj):
+        try:
+            pickle.loads(obj)
+
+        except pickle.UnpicklingError:
+            return False
+        return True
+
+    def __pickle_obj(self, obj):
+        result = pickle.loads(obj)
+        lists = result.tolist() 
+        return lists
+
     def publish_asset(self, private_key, name, metadata):
 
         wallet = self.__get_wallet(private_key)
@@ -168,11 +181,9 @@ class OceanAdapter:
 
         if result['status'] == 70:
             data = self.ocean.compute.result_file(data_did, job_id, 0, wallet)
-            model = pickle.loads(data)
+            model = self.__pickle_obj(data) if self.__is_picklable(data) else data                  
 
-            lists = model.tolist()           
-
-            return lists
+            return model
         else:
             return None
 

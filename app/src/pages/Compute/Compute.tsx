@@ -60,12 +60,12 @@ function Compute() {
     let anchor = document.createElement('a')
 
     const blob = new Blob([JSON.stringify(result?.data)], {
-      type: 'application/json'
+      type: 'application/octect-stream'
     })
     const url = URL.createObjectURL(blob)
 
     anchor.setAttribute('href', url)
-    anchor.setAttribute('download', 'result.json')
+    anchor.setAttribute('download', 'result')
     anchor.click()
     setIsLoading(false)
   }

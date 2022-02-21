@@ -12,6 +12,13 @@ class ComputesView(HTTPMethodView):
 
     decorators = [protected(), inject_user()]
 
+    def __is_jsonable(self, x):
+        try:
+            jsonlib.dumps(x)
+            return True
+        except (TypeError, OverflowError):
+            return False
+
     def __export_result(self, compute, app, private_key):
         try:
             result = app.ctx.ocean.job_status(private_key, compute['data_did'], compute['job_id'])
@@ -54,8 +61,10 @@ class ComputesView(HTTPMethodView):
             compute = await app.ctx.computes_dao.get_compute_by_job_id(job_id)
 
             if request.args and request.args.get("file"):
-                result = jsonlib.dumps(app.ctx.ocean.job_result_file(private_key, compute['data_did'], job_id))                
-                return stream(lambda response: response.write(result), content_type="application/json")    
+                data = app.ctx.ocean.job_result_file(private_key, compute['data_did'], job_id)
+                result = jsonlib.dumps(data) if self.__is_jsonable(data) else data
+                content_type = "application/octet-stream"                              
+                return stream(lambda response: response.write(result), content_type=content_type)    
             if request.args and request.args.get("result"):
                 result = jsonlib.dumps(app.ctx.ocean.job_result(private_key, compute['data_did'], job_id))               
                 return stream(lambda response: response.write(result), content_type="application/json") 
@@ -64,7 +73,6 @@ class ComputesView(HTTPMethodView):
                 return json(result, status=200)   
         else:
             compute_list = await app.ctx.computes_dao.get_compute_by_ordered(ordered)
-            #result = [self.__export_result(compute, app, private_key) for compute in compute_list]
             return json(compute_list, status=200)
 
         
