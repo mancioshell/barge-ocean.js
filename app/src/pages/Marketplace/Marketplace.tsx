@@ -45,7 +45,7 @@ function Marketplace() {
     setIsBuyingAsset(false)
 
     addMessage({
-      text: 'Asset acquistato con successo',
+      text: "Richiesta di accesso eseguita con successo",
       type: 'Asset',
       variant: 'success',
       show: true
@@ -61,7 +61,7 @@ function Marketplace() {
     setIsBuyingAlgorithm(false)
 
     addMessage({
-      text: 'Algoritmo acquistato con successo',
+      text: "Richiesta di accesso eseguita con successo",
       type: 'Algoritmo',
       variant: 'success',
       show: true

@@ -7,10 +7,11 @@ import json as jsonlib
 from sanic.response import stream
 
 from sanic_jwt import protected, inject_user
+from utils.decorators import not_cached_ddo
 
 class ComputesView(HTTPMethodView):
 
-    decorators = [protected(), inject_user()]
+    decorators = [protected(), inject_user(), not_cached_ddo()]
 
     def __is_jsonable(self, x):
         try:

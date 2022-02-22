@@ -18,7 +18,11 @@ from ocean_lib.assets.trusted_algorithms import add_publisher_trusted_algorithm
 from ocean_lib.web3_internal.constants import ZERO_ADDRESS
 from ocean_lib.models.compute_input import ComputeInput
 
+from utils.exceptions import OceanDDONotFoundError
+
 import pickle
+
+from tenacity import retry, stop_after_attempt, wait_fixed
 
 class OceanAdapter:
 
@@ -69,6 +73,13 @@ class OceanAdapter:
         lists = result.tolist() 
         return lists
 
+    @retry(stop=stop_after_attempt(20), wait=wait_fixed(10))
+    def is_ddo_cached(self, did):
+        DDO = self.ocean.assets.resolve(did)
+        if DDO is None:
+            raise OceanDDONotFoundError(did)
+
+
     def publish_asset(self, private_key, name, metadata):
 
         wallet = self.__get_wallet(private_key)
@@ -92,6 +103,8 @@ class OceanAdapter:
             data_token_address=datatoken.address
         )
 
+        self.is_ddo_cached(ddo.did)
+
         return ddo.did
 
     def add_publisher_trusted_algorithm(self, private_key, data_did, alg_did):
@@ -99,6 +112,9 @@ class OceanAdapter:
         wallet = self.__get_wallet(private_key)
 
         DATA_DDO = self.ocean.assets.resolve(data_did)
+        if DATA_DDO is None:
+            raise OceanDDONotFoundError(data_did)
+
         add_publisher_trusted_algorithm(DATA_DDO, alg_did, self.ocean.config.metadata_cache_uri)
         self.ocean.assets.update(DATA_DDO, publisher_wallet=wallet)
 
@@ -110,6 +126,9 @@ class OceanAdapter:
         to_wallet = self.__get_wallet(to_private_key)
 
         DDO = self.ocean.assets.resolve(did)        
+        if DDO is None:
+            raise OceanDDONotFoundError(did)
+
         datatoken = self.ocean.get_data_token(DDO.data_token_address)
         datatoken.transfer(to_wallet.address, to_wei(5), from_wallet=from_wallet)
 
@@ -120,7 +139,12 @@ class OceanAdapter:
         wallet = self.__get_wallet(private_key)
 
         DATA_DDO = self.ocean.assets.resolve(data_did)  
+        if DATA_DDO is None:
+            raise OceanDDONotFoundError(data_did)
+            
         ALG_DDO = self.ocean.assets.resolve(alg_did)
+        if ALG_DDO is None:
+            raise OceanDDONotFoundError(alg_did)
 
         compute_service = DATA_DDO.get_service('compute')
         algo_service = ALG_DDO.get_service('access')

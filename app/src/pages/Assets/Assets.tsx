@@ -70,21 +70,38 @@ function Assets() {
 
     setIsPublishing(true)
 
-    let result = await service?.doAjax('POST', '/assets', formData, [
-      { name: 'Content-Type', value: 'multipart/form-data' }
-    ])
-    resetForm()
-    setIsPublishing(false)
-    await fetchDataAssets()
-    await fetchAlgorithms()
+    try {
 
-    addMessage({
-      text: 'Pubblicazione eseguita con successo',
-      type: 'Pubblicazione',
-      variant: 'success',
-      show: true
-    })
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+      await service?.doAjax('POST', '/assets', formData, [
+        { name: 'Content-Type', value: 'multipart/form-data' }
+      ])
+
+      addMessage({
+        text: 'Pubblicazione eseguita con successo',
+        type: 'Pubblicazione',
+        variant: 'success',
+        show: true
+      })
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      
+    } catch (error) {
+
+      addMessage({
+        text: "Errore durante la pubblicazione dell'asset",
+        type: 'Pubblicazione',
+        variant: 'danger',
+        show: true
+      })
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+
+    } finally{
+
+      resetForm()
+      setIsPublishing(false)
+      await fetchDataAssets()
+      await fetchAlgorithms()
+      
+    } 
   }
 
   const linkAsset = async (asset: any, algorithm: any, resetForm: any) => {

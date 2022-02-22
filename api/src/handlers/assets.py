@@ -4,12 +4,13 @@ from sanic.response import json, text
 from sanic.log import logger
 
 from sanic_jwt import protected, inject_user
+from utils.decorators import not_cached_ddo
 
 import json as jsonlib
 
 class AssetsView(HTTPMethodView):
 
-    decorators = [protected(), inject_user()]
+    decorators = [protected(), inject_user(), not_cached_ddo()]
 
     async def post(self, request, user):
         app = Sanic.get_app("C2DFlow")       
