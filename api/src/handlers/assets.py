@@ -22,8 +22,13 @@ class AssetsView(HTTPMethodView):
         type = request.form.get("type")
         description = request.form.get("description")
         did = app.ctx.ocean.publish_asset(private_key, name, metadata)
+
+        output_type = None
+
+        if type == "alg":
+            output_type = request.form.get("output_type")
  
-        await app.ctx.assets_dao.insert_asset(did, user["_id"], name, type, description)
+        await app.ctx.assets_dao.insert_asset(did, user["_id"], name, type, description, output_type)
 
         return json({"did": did}, status=201)   
 

@@ -11,7 +11,12 @@ import React from 'react'
 
 import TablePagination from 'Components/Utils/TablePagination'
 
-function ComputeList({ jobList, onDownloadFile, onDownloadLog }: any) {
+function ComputeList({
+  jobList,
+  onDownloadFile,
+  onDownloadLog,
+  onPreview
+}: any) {
   const actions = React.useCallback(
     (compute) => (
       <>
@@ -25,7 +30,19 @@ function ComputeList({ jobList, onDownloadFile, onDownloadLog }: any) {
           <i className="fa-solid fa-download"></i> Risultato
         </Button>
         <Button
-          variant="primary"
+          className="button-margin"
+          variant="light"
+          type="button"
+          size="sm"
+          disabled={
+            compute['status'] !== 70 &&
+            compute['output_type'] !== 'application/octect-stream'
+          }
+          onClick={() => onPreview(compute['job_id'])}>
+          <i className="fa-solid fa-magnifying-glass"></i> Preview
+        </Button>
+        <Button
+          variant="dark"
           type="button"
           size="sm"
           disabled={compute['status'] !== 70}
@@ -34,7 +51,7 @@ function ComputeList({ jobList, onDownloadFile, onDownloadLog }: any) {
         </Button>
       </>
     ),
-    [onDownloadFile, onDownloadLog]
+    [onDownloadFile, onDownloadLog, onPreview]
   )
 
   const data = React.useMemo(
@@ -55,6 +72,7 @@ function ComputeList({ jobList, onDownloadFile, onDownloadLog }: any) {
       { Header: 'Algoritmo', accessor: 'alg_name' },
       { Header: 'Codice Stato', accessor: 'status' },
       { Header: 'Stato', accessor: 'statusText' },
+      { Header: 'Tipo Output', accessor: 'output_type' },
       { Header: 'Azioni', accessor: 'actions' }
     ],
     []

@@ -18,6 +18,7 @@ class ComputeDao:
             "data_did": data_asset["did"],
             "data_name": data_asset["name"],
             "alg_did": alg_asset["did"],
+            "output_type": alg_asset["output_type"],
             "alg_name": alg_asset["name"],
             "job_id": job_id,
             "ordered": ordered

@@ -56,9 +56,10 @@ function Assets() {
   }
 
   const uploadAsset = async (
-    name: any,
-    type: any,
-    description: any,
+    name: string,
+    type: string,
+    outputType: string,
+    description: string,
     selectedFile: any,
     resetForm: any
   ) => {
@@ -66,6 +67,7 @@ function Assets() {
     formData.append('metadata', selectedFile)
     formData.append('name', name)
     formData.append('type', type)
+    formData.append('output_type', outputType)
     formData.append('description', description)
 
     setIsPublishing(true)

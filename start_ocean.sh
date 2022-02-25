@@ -95,7 +95,7 @@ else
 fi
 
 #export OPERATOR_SERVICE_URL=http://my-ocean-operator:8050/
-export OPERATOR_SERVICE_URL=${OPERATOR_SERVICE_URL:-"https://nextv.operator.oceanprotocol.com/"}
+export OPERATOR_SERVICE_URL=${OPERATOR_SERVICE_URL:-"https://c2d-dev.operator.oceanprotocol.com/"}
 
 # Add aquarius to /etc/hosts
 # Workaround mainly for macOS and windows

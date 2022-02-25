@@ -13,9 +13,9 @@ class ComputesView(HTTPMethodView):
 
     decorators = [protected(), inject_user(), not_cached_ddo()]
 
-    def __is_jsonable(self, x):
+    def __is_json_serializable(self, data):
         try:
-            jsonlib.dumps(x)
+            jsonlib.dumps(data)
             return True
         except (TypeError, OverflowError):
             return False
@@ -59,13 +59,16 @@ class ComputesView(HTTPMethodView):
 
         if job_id != None:
 
-            compute = await app.ctx.computes_dao.get_compute_by_job_id(job_id)
+            compute = await app.ctx.computes_dao.get_compute_by_job_id(job_id)         
 
             if request.args and request.args.get("file"):
                 data = app.ctx.ocean.job_result_file(private_key, compute['data_did'], job_id)
-                result = jsonlib.dumps(data) if self.__is_jsonable(data) else data
-                content_type = "application/octet-stream"                              
-                return stream(lambda response: response.write(result), content_type=content_type)    
+                content_type = compute["output_type"]                            
+
+                if content_type == "application/json":
+                    data = jsonlib.dumps(data) if self.__is_json_serializable(data) else data
+
+                return stream(lambda response: response.write(data), content_type=content_type)    
             if request.args and request.args.get("result"):
                 result = jsonlib.dumps(app.ctx.ocean.job_result(private_key, compute['data_did'], job_id))               
                 return stream(lambda response: response.write(result), content_type="application/json") 

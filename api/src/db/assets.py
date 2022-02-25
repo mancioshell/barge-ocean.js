@@ -14,12 +14,13 @@ class AssetDao:
     def __init__(self):
         return
     
-    async def insert_asset(self, did, publisher, name, type, description): 
+    async def insert_asset(self, did, publisher, name, type, description, output_type = None,): 
 
         asset = {
             "_id": str(ObjectId()),
             "did": did,
             "type": type,
+            "output_type": output_type,
             "name": name,
             "description": description,
             "publisher": publisher,
