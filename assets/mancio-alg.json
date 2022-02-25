@@ -1,0 +1,44 @@
+{
+  "main": {
+    "type": "algorithm",
+
+    "algorithm": {
+      "language": "python",
+
+      "format": "docker-image",
+
+      "version": "0.1",
+
+      "container": {
+        "entrypoint": "python $ALGO",
+
+        "image": "oceanprotocol/algo_dockers",
+
+        "tag": "python-panda"
+      }
+    },
+
+    "files": [
+      {
+        "url": "https://raw.githubusercontent.com/mancioshell/ocean-c2d-flow-ui/master/algorithm/prediction.py",
+
+        "index": 0,
+
+        "contentType": "text/text"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/mancioshell/ocean-c2d-flow-ui/master/algorithm/input.json",
+
+        "index": 1,
+
+        "contentType": "application/json"
+      }
+    ],
+
+    "name": "prediction",
+    "author": "ciano",
+    "license": "CC0",
+
+    "dateCreated": "2022-01-28T10:55:11Z"
+  }
+}

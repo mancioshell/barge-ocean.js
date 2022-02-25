@@ -27,5 +27,6 @@ operator-engine
 operator-service
 postman
 
-algorithm
+algorithm/heart.csv
+algorithm/result
 kubernetes
