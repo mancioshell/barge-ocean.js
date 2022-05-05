@@ -3,7 +3,7 @@ services:
   c2d-api:
     build: ../api
     container_name: c2d-api
-    image: sogei/c2d-api
+    image: mancioshell/ocean-c2d-flow-api
     restart: always
     ports:
       - 8000:8000
@@ -15,7 +15,9 @@ services:
       - ganache
     environment:
       ADDRESS_FILE: "/ocean-contracts/artifacts/address.json"
-      OCEAN_NETWORK_URL: "http://ganache:8545"
-      METADATA_CACHE_URI: http://aquarius:5000
+      SANIC_OCEAN_NETWORK_URL: "http://ganache:8545"
+      SANIC_METADATA_CACHE_URI: http://aquarius:5000
+      SANIC_MOTOR_URI: "mongodb://localhost:27017/ocean"
+      SANIC_PROVIDER_URL: "http://localhost:8030"
     volumes:
     - ${OCEAN_ARTIFACTS_FOLDER}:/ocean-contracts/artifacts/

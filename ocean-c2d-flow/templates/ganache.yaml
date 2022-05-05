@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.blockchain.resourceName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.blockchain.resourceName }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.blockchain.resourceName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.blockchain.resourceName }}
+    spec:
+      containers:
+        - name: {{ .Values.blockchain.resourceName }}
+          image: {{ .Values.blockchain.imageName }}
+
+          command: ["node"]
+          args:
+            [
+              "/app/ganache-core.docker.cli.js",
+              "--db",
+              "./ganache_cache",
+              "--networkId",
+              "0x2324",
+              "--gasLimit",
+              "10000000000",
+              "--gasPrice",
+              "1",
+              "---hardfork",
+              "istanbul",
+              "--mnemonic",
+              "$(GANACHE_MNEMONIC)",
+              "-e",
+              "1000000"
+            ]
+          env:
+            - name: GANACHE_MNEMONIC
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.common.resourceName }}-configmap
+                  key: mnemonic
+          resources:
+            limits:
+              memory: "1024Mi"
+              cpu: "0.5"
+          ports:
+            - containerPort: {{ .Values.blockchain.port }}
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.blockchain.resourceName }}-service
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: {{ .Values.blockchain.resourceName }}
+  ports:
+    - port: {{ .Values.blockchain.port }}
+      targetPort: {{ .Values.blockchain.port }}
+  type: ClusterIP

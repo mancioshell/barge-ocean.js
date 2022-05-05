@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.elastic.resourceName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.elastic.resourceName }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.elastic.resourceName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.elastic.resourceName }}
+    spec:
+      containers:
+        - name: {{ .Values.elastic.resourceName }}
+          image: {{ .Values.elastic.imageName }}          
+          env:
+            - name: ES_JAVA_OPTS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.elastic.resourceName }}-configmap
+                  key: java-opts
+            - name: MAX_MAP_COUNT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.elastic.resourceName }}-configmap
+                  key: max-map-count
+            - name: discovery.type
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.elastic.resourceName }}-configmap
+                  key: discovery.type
+            - name: cluster.routing.allocation.disk.threshold_enabled
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.elastic.resourceName }}-configmap
+                  key: cluster.routing.allocation.disk.threshold_enabled
+          resources:
+            limits:
+              memory: "1024Mi"
+              cpu: "1"
+          ports:
+            - containerPort: {{ .Values.elastic.port }}
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.elastic.resourceName }}-service
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: {{ .Values.elastic.resourceName }}
+  ports:
+    - port: {{ .Values.elastic.port }}
+      targetPort: {{ .Values.elastic.port }}
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.elastic.resourceName }}-configmap
+  namespace: {{ .Values.namespace }}
+data:
+  java-opts: {{ .Values.elastic.javaOpts }}
+  max-map-count: {{ .Values.elastic.maxMapCount | quote }}
+  discovery.type: {{ .Values.elastic.discoveryType }}
+  cluster.routing.allocation.disk.threshold_enabled: {{ .Values.elastic.thresholdEnabled | quote }}

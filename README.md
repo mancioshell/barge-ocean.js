@@ -45,3 +45,18 @@ To use the application:
 
 * Open the browser and type http://localhost 
 * Enjoy using C2D Flow. :)
+
+## Kubernetes
+
+Inside your /etc/hotsts: 
+
+```
+127.0.0.1 http://ocean-c2d-flow.com/
+```
+
+```bash
+minikube start
+minikube addons enable ingress
+minikube tunnel
+```
+

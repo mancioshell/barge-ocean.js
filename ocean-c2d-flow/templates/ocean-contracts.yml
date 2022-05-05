@@ -1,0 +1,93 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.contracts.resourceName }}
+  namespace: {{ .Values.namespace }}
+#   annotations:
+#     "helm.sh/hook": post-install
+#     "helm.sh/hook-weight": "-1"
+#     "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  template:
+    spec:
+      containers:
+        - name: {{ .Values.contracts.resourceName }}
+          image: {{ .Values.contracts.imageName }}   
+
+          volumeMounts:
+          - mountPath: {{ .Values.volumes.blockchain.mountPath }}  
+            name: {{ .Values.volumes.blockchain.name }}
+
+          env:
+            - name: MNEMONIC
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.common.resourceName }}-configmap
+                  key: mnemonic
+            - name: ADDRESS_FILE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.common.resourceName }}-configmap
+                  key: address-file
+            - name: NETWORK_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.common.resourceName }}-configmap
+                  key: network-name            
+            - name: DEPLOY_CONTRACTS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.common.resourceName }}-configmap
+                  key: deploy-contracts
+            - name: LOCAL_CONTRACTS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.common.resourceName }}-configmap
+                  key: local-contracts
+            - name: NETWORK_RPC_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.common.resourceName }}-configmap
+                  key: network-rpc-host
+            - name: NETWORK_RPC_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.common.resourceName }}-configmap
+                  key: network-rpc-port
+            - name: NETWORK_RPC_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.common.resourceName }}-configmap
+                  key: network-rpc-url
+
+            - name: OWNER_ROLE_ADDRESS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.contracts.resourceName }}-configmap
+                  key: owner-role-address
+            - name: REUSE_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.contracts.resourceName }}-configmap
+                  key: reuse-database
+            - name: DATABASE_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.contracts.resourceName }}-configmap
+                  key: database-path    
+                        
+      volumes:
+      - name: {{ .Values.volumes.blockchain.name }}
+        persistentVolumeClaim:
+          claimName: {{ .Values.volumes.blockchain.claimName }}
+      restartPolicy: Never
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.contracts.resourceName }}-configmap
+  namespace: {{ .Values.namespace }}
+data:
+  owner-role-address: {{ .Values.contracts.ownerRoleAddress | quote }}
+  reuse-database: {{ .Values.contracts.reuseDatabase | quote }}
+  database-path: {{ .Values.contracts.databasePath }}

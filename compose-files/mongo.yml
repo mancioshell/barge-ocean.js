@@ -41,14 +41,15 @@ services:
 
   mongoclient:
     container_name: mongoclient
-    image: mongo
+    image: mancioshell/ocean-c2d-flow-replicaset-mongoclient
     depends_on:
       - mongo1
       - mongo2
       - mongo3
-    volumes:
-      - ${MONGO_SCRIPTS}:/scripts
-      - ${MONGO_DATA}:/initial-data
+    environment:
+      MONGO1: "mongo1"
+      MONGO2: "mongo2"
+      MONGO3: "mongo3"
     entrypoint:
       - /scripts/initiate_replica.sh
     networks:

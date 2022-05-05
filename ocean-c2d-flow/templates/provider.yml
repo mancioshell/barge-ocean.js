@@ -1,0 +1,127 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.provider.resourceName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.provider.resourceName }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.provider.resourceName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.provider.resourceName }}
+    spec:
+      containers:
+        - name: {{ .Values.provider.resourceName }}
+          image: {{ .Values.provider.imageName }}      
+
+          volumeMounts:
+          - mountPath: {{ .Values.volumes.blockchain.mountPath }}  
+            name: {{ .Values.volumes.blockchain.name }}         
+
+          env:
+            - name: PROVIDER_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.provider.resourceName }}-secret
+                  key: private-key    
+
+            - name: ARTIFACTS_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.common.resourceName }}-configmap
+                  key: artifacts-path     
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.provider.resourceName }}-configmap
+                  key: log-level  
+            - name: OCEAN_PROVIDER_WORKERS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.provider.resourceName }}-configmap
+                  key: provider-workers
+            - name: IPFS_GATEWAY
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.provider.resourceName }}-configmap
+                  key: ipfs-gateway     
+            - name: OPERATOR_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.provider.resourceName }}-configmap
+                  key: operator-serice-url           
+            - name: AQUARIUS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.common.resourceName }}-configmap
+                  key: aquarius-url            
+
+            - name: OCEAN_PROVIDER_URL
+              value: "http://0.0.0.0:8030"
+            - name: OCEAN_PROVIDER_TIMEOUT
+              value: {{ .Values.provider.port | quote }}         
+
+            - name: NETWORK_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.common.resourceName }}-configmap
+                  key: network-rpc-url
+            - name: PARITY_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.common.resourceName }}-configmap
+                  key: network-rpc-url          
+
+          resources:
+            limits:
+              memory: "1024Mi"
+              cpu: "0.5"
+          ports:
+            - containerPort: {{ .Values.provider.port }}
+      volumes:
+        - name: {{ .Values.volumes.blockchain.name }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.volumes.blockchain.claimName }}
+      restartPolicy: Always
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.provider.resourceName }}-service
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: {{ .Values.provider.resourceName }}
+  ports:
+    - port: {{ .Values.provider.port }}
+      targetPort: {{ .Values.provider.port }}
+  type: ClusterIP
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.provider.resourceName }}-secret
+  namespace: {{ .Values.namespace }}
+type: Opaque
+data:
+  private-key: {{ .Values.provider.privateKey }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.provider.resourceName }}-configmap
+  namespace: {{ .Values.namespace }}
+data:
+  log-level: {{ .Values.provider.logLevel }}
+  provider-workers: {{ .Values.provider.providerWorkers | quote }}
+  ipfs-gateway:  {{ .Values.provider.ipfsGateway }}
+  operator-serice-url:  {{ .Values.provider.operatorServiceUrl }} 

@@ -7,8 +7,8 @@
 #
 
 # Mongo Configuration
-export MONGO_SCRIPTS="./scripts"
-export MONGO_DATA="./data"
+export MONGO_SCRIPTS="./database/scripts"
+export MONGO_DATA="./database/data"
 
 IP="localhost"
 optspec=":-:"
@@ -167,11 +167,9 @@ show_banner
 
 COMPOSE_FILES=""
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/network_volumes.yml"
-COMPOSE_FILES+=" -f ${COMPOSE_DIR}/dashboard.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/aquarius.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/elasticsearch.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/provider.yml"
-COMPOSE_FILES+=" -f ${COMPOSE_DIR}/redis.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/ganache.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/ocean_contracts.yml"
 COMPOSE_FILES+=" -f ${COMPOSE_DIR}/mongo.yml"

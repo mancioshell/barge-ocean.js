@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.namespace }}
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.common.resourceName }}-configmap
+  namespace: {{ .Values.namespace }}
+
+data: 
+  deploy-contracts: {{ .Values.common.deployContracts | quote }}
+  local-contracts: {{ .Values.common.localContracts | quote }}
+  network-name: {{ .Values.common.networkName }}
+  network-rpc-host: {{ .Values.common.networkRpcHost }}
+  network-rpc-port: {{ .Values.common.networkRpcPort | quote }}
+  network-rpc-url: {{ .Values.common.networkRpcUrl }}
+  mnemonic: {{ .Values.common.mnemonic }}
+  artifacts-path: {{ .Values.common.artifactsPath }}
+  address-file: {{ .Values.common.addressFile }}
+  aquarius-url:  {{ .Values.common.aquariusUrl }}
+  provider-url: {{ .Values.common.providerUrl }}
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.volumes.blockchain.persistentVolumeName }}
+spec:
+  accessModes:
+    - {{ .Values.volumes.blockchain.accessModes }}
+  capacity:
+    storage: {{ .Values.volumes.blockchain.storage }}
+  hostPath:
+    path: {{ .Values.volumes.blockchain.persistentVolumePath }}
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.volumes.mongo.persistentVolumeName }}
+spec:
+  accessModes:
+    - {{ .Values.volumes.mongo.accessModes }}
+  capacity:
+    storage: {{ .Values.volumes.mongo.storage }}
+  hostPath:
+    path: {{ .Values.volumes.mongo.persistentVolumePath }}
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.volumes.blockchain.claimName }}
+  namespace: {{ .Values.namespace }}
+spec:
+  volumeMode: Filesystem
+  accessModes:
+    - {{ .Values.volumes.blockchain.accessModes }}
+  resources:
+    requests:
+      storage: {{ .Values.volumes.blockchain.storageClaim }}

@@ -1,0 +1,153 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: c2d-aquarius
+  namespace: ocean-c2d-flow
+  labels:
+    app: c2d-aquarius
+spec:
+  selector:
+    matchLabels:
+      app: c2d-aquarius
+  template:
+    metadata:
+      labels:
+        app: c2d-aquarius
+    spec:
+      containers:
+        - name: c2d-aquarius
+          image: oceanprotocol/aquarius:v3.1.1     
+
+          volumeMounts:
+          - mountPath: /ocean-contracts/artifacts/  
+            name: blockchain-volume      
+
+          env:
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: c2d-aquarius-secret
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: c2d-aquarius-secret
+                  key: password
+            - name: EVENTS_ECIES_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: c2d-aquarius-secret
+                  key: private-key
+
+            - name: DB_HOSTNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: c2d-aquarius-configmap
+                  key: hostname
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: c2d-aquarius-configmap
+                  key: port
+            - name: DB_SSL
+              valueFrom:
+                configMapKeyRef:
+                  name: c2d-aquarius-configmap
+                  key: db-ssl
+            - name: DB_VERIFY_CERTS
+              valueFrom:
+                configMapKeyRef:
+                  name: c2d-aquarius-configmap
+                  key: db-verify-certs    
+                  
+            - name: ARTIFACTS_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: c2d-common-configmap
+                  key: artifacts-path        
+            - name: ADDRESS_FILE
+              valueFrom:
+                configMapKeyRef:
+                  name: c2d-common-configmap
+                  key: address-file      
+
+            - name: LOG_LEVEL
+              value: "DEBUG"
+            - name: EVENTS_ALLOW
+              value: "0"
+            - name: RUN_EVENTS_MONITOR
+              value: "1"
+            
+            - name: DB_CA_CERTS
+              value: ""
+            - name: DB_CLIENT_KEY
+              value: ""
+            - name: DB_CLIENT_CERT
+              value: ""
+              
+            - name: DEPLOY_CONTRACTS
+              valueFrom:
+                configMapKeyRef:
+                  name: c2d-common-configmap
+                  key: deploy-contracts
+            - name: NETWORK_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: c2d-common-configmap
+                  key: network-name
+            - name: EVENTS_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: c2d-common-configmap
+                  key: network-rpc-url
+                  
+          resources:
+            limits:
+              memory: "1024Mi"
+              cpu: "1"
+          ports:
+            - containerPort: 5000
+      volumes:
+        - name: blockchain-volume
+          persistentVolumeClaim:
+            claimName: blockchain-vc
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: c2d-aquarius-service
+  namespace: ocean-c2d-flow
+spec:
+  selector:
+    app: c2d-aquarius
+  ports:
+    - port: 5000
+      targetPort: 5000
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: c2d-aquarius-secret
+  namespace: ocean-c2d-flow
+type: Opaque
+data:
+  username: ZWxhc3RpYw==
+  password: cGFzc3dvcmQ=
+  private-key: MHg1ZDc1ODM3Mzk0YjA3OGNlOTdiYzI4OWZhOGQ3NWUyMTAwMDU3MzUyMGJmYTc3ODRhOWQyOGNjYWFlNjAyYmY4             
+  
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: c2d-aquarius-configmap
+  namespace: ocean-c2d-flow
+data:
+  hostname: c2d-elasticsearch-service.ocean-c2d-flow.svc.cluster.local
+  port: "9200"
+  db-ssl: "false"
+  db-verify-certs: "false"

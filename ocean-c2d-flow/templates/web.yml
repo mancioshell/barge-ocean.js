@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.web.resourceName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.web.resourceName }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.web.resourceName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.web.resourceName }}
+    spec:
+      containers:
+        - name: {{ .Values.web.resourceName }}
+          image: {{ .Values.web.imageName }}      
+
+          env:
+            - name: API_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.web.resourceName }}-configmap
+                  key: api-url                
+
+          resources:
+            limits:
+              memory: "1024Mi"
+              cpu: "0.5"
+          ports:
+            - containerPort: {{ .Values.web.port }} 
+      restartPolicy: Always
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.web.resourceName }}-service
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: {{ .Values.web.resourceName }}
+  ports:
+    - port: {{ .Values.web.port }} 
+      targetPort: {{ .Values.web.port }}
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.web.resourceName }}-configmap
+  namespace: {{ .Values.namespace }}
+data:
+  api-url: {{ .Values.web.apiUrl }}

@@ -1,0 +1,29 @@
+Parameters:
+  VPC:
+    Type: String
+    Description: The VPC identity
+    Default: vpc-ID
+
+Resources:
+
+  EFSSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "security group for the prod EFS"
+      GroupName: "test-EFS-SG"
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: sg-ID
+          Description: "servers to connect to efs"
+          FromPort: 2049
+          IpProtocol: "tcp"
+          ToPort: 2049
+
+  MountTargetVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 172.31.0.0/16
+
+  FileSystemResource:
+    Type: "AWS::EFS::FileSystem"
+    Properties: {}

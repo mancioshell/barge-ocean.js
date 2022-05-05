@@ -79,7 +79,7 @@ function Marketplace() {
     <div id="container">
       <header className="mt-2">
         <h1>
-          <i className="fa-brands fa-digital-ocean"></i> Sogei Marketplace
+          <i className="fa-brands fa-digital-ocean"></i> Marketplace
         </h1>
       </header>
 

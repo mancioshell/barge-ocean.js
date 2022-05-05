@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.mongo.resourceName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.mongo.resourceName }}
+spec:
+  serviceName: {{ .Values.mongo.resourceName }}-service
+  replicas: 3
+  selector:
+    matchLabels:
+      app: {{ .Values.mongo.resourceName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.mongo.resourceName }}
+        environment: test
+        replicaset: rs0
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: {{ .Values.mongo.resourceName }}
+          image: {{ .Values.mongo.imageName }}
+          command:
+            - "mongod"
+            - "--bind_ip"
+            - "0.0.0.0"
+            - "--replSet"
+            - {{ .Values.mongo.replSetName }}
+          resources:
+            requests:
+              cpu: "0.2"
+              memory: 200Mi
+          ports:
+            - containerPort: {{ .Values.mongo.port }}
+          volumeMounts:
+            - name: {{ .Values.volumes.mongo.name }}
+              mountPath:  {{ .Values.volumes.mongo.mountPath }}     
+  volumeClaimTemplates:
+  - metadata:
+      name: {{ .Values.volumes.mongo.name }}
+      annotations:
+        volume.beta.kubernetes.io/storage-class: "standard"
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: {{ .Values.volumes.mongo.storageClaim }}
+---
+
+# apiVersion: batch/v1
+# kind: Job
+# metadata:
+#   name: {{ .Values.mongo.resourceName }}-client
+#   namespace: {{ .Values.namespace }}
+#   annotations:
+#     "helm.sh/hook": post-install
+#     "helm.sh/hook-weight": "-1"
+#     "helm.sh/hook-delete-policy": hook-succeeded
+# spec:
+#   template:
+#     spec:
+#       containers:
+#         - name: {{ .Values.mongo.resourceName }}-client
+#           image: {{ .Values.mongo.clientImageName }}
+#           env:
+#             - name: MONGO1
+#               valueFrom:
+#                 configMapKeyRef:
+#                   name: {{ .Values.mongo.resourceName }}-configmap
+#                   key: mongo1
+#             - name: MONGO2
+#               valueFrom:
+#                 configMapKeyRef:
+#                   name: {{ .Values.mongo.resourceName }}-configmap
+#                   key: mongo2
+#             - name: MONGO3
+#               valueFrom:
+#                 configMapKeyRef:
+#                   name: {{ .Values.mongo.resourceName }}-configmap
+#                   key: mongo3
+#           command: ["/scripts/initiate_replica.sh"]
+#       restartPolicy: Never
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.mongo.resourceName }}-service
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: {{ .Values.mongo.resourceName }}
+  ports:
+  - port: {{ .Values.mongo.port }}
+    targetPort: {{ .Values.mongo.port }}
+  clusterIP: None
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.mongo.resourceName }}-configmap
+  namespace: {{ .Values.namespace }}
+data:
+  mongo1: {{ .Values.mongo.mongo1 }}
+  mongo2: {{ .Values.mongo.mongo2 }}
+  mongo3: {{ .Values.mongo.mongo3 }}
+  

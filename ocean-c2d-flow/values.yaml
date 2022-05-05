@@ -1,0 +1,107 @@
+# Default values for ocean-c2d-flow.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+namespace: ocean-c2d-flow
+
+volumes:
+  blockchain:
+    name: blockchain-volume
+    persistentVolumeName: blockchain
+    claimName: blockchain-vc
+    mountPath: /ocean-contracts/artifacts/
+    accessModes: ReadWriteOnce
+    storage: 1Gi
+    storageClaim: 512Mi
+    persistentVolumePath: /data/blockchain/
+  
+  mongo:
+    name: mongodb-volume
+    persistentVolumeName: mongodb
+    claimName: mongodb-vc
+    mountPath: /data/db
+    accessModes: ReadWriteOnce
+    storage: 2Gi
+    storageClaim: 1Gi
+    persistentVolumePath: /data/mongodb/
+
+common:
+  resourceName: c2d-common
+  deployContracts: "true"
+  localContracts: "true"
+  networkName: "development"
+  networkRpcHost: "c2d-blockchain-service.ocean-c2d-flow.svc.cluster.local"
+  networkRpcPort: "8545"
+  networkRpcUrl: "http://c2d-blockchain-service.ocean-c2d-flow.svc.cluster.local:8545"
+  mnemonic: "taxi music thumb unique chat sand crew more leg another off lamp"
+  addressFile: "/ocean-contracts/artifacts/address.json"
+  artifactsPath: "/ocean-contracts/artifacts"
+  aquariusUrl: "http://c2d-aquarius-service.ocean-c2d-flow.svc.cluster.local:5000"
+  providerUrl: "http://c2d-provider-service.ocean-c2d-flow.svc.cluster.local:8030"
+
+blockchain:
+  imageName: trufflesuite/ganache-cli:latest
+  resourceName: c2d-blockchain
+  port: 8545
+
+contracts:
+  imageName: oceanprotocol/ocean-contracts:v0.6.7
+  resourceName: c2d-ocean-contracts
+  ownerRoleAddress: "true"
+  reuseDatabase: "true"
+  databasePath: "/ganache-db"
+
+elastic:
+  imageName: elasticsearch:6.8.3
+  resourceName: c2d-elasticsearch
+  port: 9200
+  javaOpts: "-Xms512m -Xmx512m"
+  maxMapCount: "64000"
+  discoveryType: "single-node"
+  thresholdEnabled: "false"
+
+mongo:
+  imageName: mongo:latest
+  clientImageName: mancioshell/ocean-c2d-flow-replicaset-mongoclient
+  command: /scripts/initiate_replica.sh
+  resourceName: c2d-mongodb
+  port: 27017
+  mongo1: "c2d-mongodb-0.c2d-mongodb-service.ocean-c2d-flow.svc.cluster.local"
+  mongo2: "c2d-mongodb-1.c2d-mongodb-service.ocean-c2d-flow.svc.cluster.local"
+  mongo3: "c2d-mongodb-2.c2d-mongodb-service.ocean-c2d-flow.svc.cluster.local"
+  replSetName: "rs0"
+
+aquarius:
+  imageName: oceanprotocol/aquarius:v3.1.1
+  resourceName: c2d-aquarius
+  port: 5000
+  username: "ZWxhc3RpYwo="
+  password: "Y2hhbmdlbWUK"
+  privateKey: "MHg1ZDc1ODM3Mzk0YjA3OGNlOTdiYzI4OWZhOGQ3NWUyMTAwMDU3MzUyMGJmYTc3ODRhOWQyOGNjYWFlNjAyYmY4"
+  hostname: "c2d-elasticsearch-service.ocean-c2d-flow.svc.cluster.local"
+  dbPort: 9200
+  dbSsl: "false"
+  dbVerifyCerts: "false"  
+
+provider:
+  imageName: oceanprotocol/provider-py:v0.4.20
+  resourceName: c2d-provider
+  port: 8030
+  privateKey: "MHhmZDVjMWNjZWEwMTViNmQ2NjM2MTg4NTA4MjQxNTRhM2IzZmIyODgyYzQ2Y2VmYjA1YjlhOTNmZWE4YzNkMjE1"
+  logLevel: "INFO"
+  providerWorkers: "10"
+  ipfsGateway: "https://ipfs.oceanprotocol.com"
+  operatorServiceUrl: "https://c2d-dev.operator.oceanprotocol.com/"
+
+api:
+  imageName: mancioshell/ocean-c2d-flow-api
+  resourceName: c2d-api
+  port: 8000
+  motorUri: "mongodb://c2d-mongodb-0.c2d-mongodb-service.ocean-c2d-flow.svc.cluster.local,c2d-mongodb-1.c2d-mongodb-service.ocean-c2d-flow.svc.cluster.local,c2d-mongodb-2.c2d-mongodb-service.ocean-c2d-flow.svc.cluster.local/ocean?replicaSet=rs0"
+
+web:
+  ingressHost: ocean-c2d-flow.com
+  imageName: mancioshell/ocean-c2d-flow-web 
+  resourceName: c2d-web
+  port: 80
+  apiUrl: "http://c2d-api-service.ocean-c2d-flow.svc.cluster.local:8000/"

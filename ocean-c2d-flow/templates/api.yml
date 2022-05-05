@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.api.resourceName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.api.resourceName }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.api.resourceName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.api.resourceName }}
+    spec:
+      containers:
+        - name: {{ .Values.api.resourceName }}
+          image: {{ .Values.api.imageName }}    
+
+          volumeMounts:
+          - mountPath: {{ .Values.volumes.blockchain.mountPath }}   
+            name: {{ .Values.volumes.blockchain.name }}       
+
+          env:
+            - name: ADDRESS_FILE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.common.resourceName }}-configmap
+                  key: address-file   
+            - name: SANIC_OCEAN_NETWORK_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.common.resourceName }}-configmap
+                  key: network-rpc-url  
+
+            - name: SANIC_METADATA_CACHE_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.common.resourceName }}-configmap
+                  key: aquarius-url      
+            - name: SANIC_MOTOR_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.api.resourceName }}-configmap
+                  key: motor-uri
+            - name: SANIC_PROVIDER_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.common.resourceName }}-configmap
+                  key: provider-url                  
+
+          resources:
+            limits:
+              memory: "1024Mi"
+              cpu: "0.5"
+          ports:
+            - containerPort: {{ .Values.api.port }}
+      volumes:
+        - name: {{ .Values.volumes.blockchain.name }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.volumes.blockchain.claimName }}
+      restartPolicy: Always
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.api.resourceName }}-service
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: c2d-api
+  ports:
+    - port: {{ .Values.api.port }}
+      targetPort: {{ .Values.api.port }}
+  type: ClusterIP
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.api.resourceName }}-configmap
+  namespace: {{ .Values.namespace }}
+data:
+  motor-uri: {{ .Values.api.motorUri }}

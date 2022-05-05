@@ -23,7 +23,6 @@ ENV PATH $POETRY_HOME/bin:$VIRTUAL_ENV/bin:$PATH
 
 COPY --from=build /app /app
 COPY src src
-COPY src/config/config.production.py src/config/config.py
 
 WORKDIR /app/src
 
